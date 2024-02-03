@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import OpenAI from "openai";
-import "./App.css";
 import FileInput from "./FileInput";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
-
 import { auth } from "./firebase.config"; // Adjust the path as necessary
 import { signOut } from "firebase/auth";
+import jsPDF from "jspdf";
+import Modal from "./components/Modal";
 
 GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
 
@@ -13,6 +13,19 @@ const Main = () => {
   const [response, setResponse] = useState(null);
   const [text, setText] = useState("");
   const [jsonOutput, setJsonOutput] = useState("");
+  const [username, setUsername] = useState("");
+  const [fileInputKey, setFileInputKey] = useState(Date.now());
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [isSignedOut, setIsSignedOut] = useState(false);
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      setUsername(user.displayName || user.email || "User");
+    }
+  }, []);
 
   const convertToRichText = (jsonOutput) => {
     if (!jsonOutput) return "";
@@ -131,21 +144,85 @@ const Main = () => {
 
   const handleSignOut = async () => {
     try {
-      await signOut(auth);
-      alert("User signed out successfully");
-      // Redirect to login page or handle the user sign-out UI update as needed
+      setModalTitle("Sign Out");
+      setModalMessage("Sign out successful \n Redirecting to login page.");
+
+      setTimeout(async () => {
+        await signOut(auth);
+        setIsSignedOut(true);
+      }, 4000);
     } catch (error) {
-      alert("Error signing out:", error);
+      setModalTitle("Error");
+      setModalMessage(`Error signing out: ${error.message}`);
+    }
+    setModalOpen(true);
+  };
+
+  useEffect(() => {
+    if (isSignedOut && !modalOpen) {
+    }
+  }, [isSignedOut, modalOpen]);
+
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setModalTitle("Copy to Clipboard");
+      setModalMessage("Copied to clipboard!");
+      setModalOpen(true);
+    } catch (err) {
+      setModalTitle("Error");
+      setModalMessage("Failed to copy");
+      setModalOpen(true);
     }
   };
 
+  const downloadPDF = (text) => {
+    const doc = new jsPDF();
+
+    // Define margins and page width
+    const margins = {
+      top: 10,
+      bottom: 10,
+      left: 10,
+      width: 180,
+    };
+
+    // Use splitTextToSize to handle long text
+    const splitText = doc.splitTextToSize(text, margins.width);
+
+    // Initial vertical offset for lines
+    let verticalOffset = margins.top;
+
+    splitText.forEach((line, index) => {
+      if (verticalOffset + 10 > doc.internal.pageSize.height - margins.bottom) {
+        doc.addPage();
+        verticalOffset = margins.top; // Reset vertical offset for the new page
+      }
+      doc.text(line, margins.left, verticalOffset);
+      verticalOffset += 10; // Increase vertical offset for next line
+    });
+
+    doc.save("resume.pdf");
+  };
+
+  const handleReset = () => {
+    setText(""); // Clear text area
+    setResponse(null); // Clear response
+    setFileInputKey(Date.now());
+    setModalTitle("Reset");
+    setModalMessage("Fields Resetted ");
+    setModalOpen(true); // Reset FileInput by changing its key
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-900">
       {/* Sign-out button container */}
-      <div className="flex justify-end p-4">
+
+      <div className="flex justify-between items-center bg-gray-900 text-white p-4">
+        <h1 className="text-xl font-semibold">Hello, {username}</h1>
         <button
           onClick={handleSignOut}
-          className="px-4 py-2 bg-red-500 text-white font-medium rounded hover:bg-red-600 transition-colors"
+          className="bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-opacity-50 text-white font-bold py-2 px-4 rounded transition ease-in-out duration-150"
         >
           Sign Out
         </button>
@@ -154,16 +231,15 @@ const Main = () => {
       {/* Main content container */}
       <form onSubmit={handleSubmit}>
         <div className="flex flex-col items-center justify-center p-6">
-          <h1 className="text-4xl font-bold text-blue-600 mb-8">
-            Resume Assistant
-          </h1>
+          <h1 className="text-4xl font-bold text-blue-600 mb-8">QwikResume</h1>
           <textarea
             className="w-full max-w-3xl p-3 border border-gray-300 rounded-lg mb-4"
             placeholder="Paste the job description here..."
             rows="6"
+            value={text}
             onChange={(e) => setText(e.target.value)}
           ></textarea>
-          <FileInput onFileSelect={handleFileSelect} />
+          <FileInput key={fileInputKey} onFileSelect={handleFileSelect} />
           <button
             type="submit"
             className="mt-4 px-6 py-2 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 transition-colors"
@@ -172,13 +248,48 @@ const Main = () => {
           </button>
 
           {response && (
-            <div className="mt-8 p-4 bg-white shadow rounded-lg w-full max-w-3xl">
-              <h2 className="text-2xl font-semibold mb-2">Formatted Resume:</h2>
-              <div className="whitespace-pre-wrap">{response}</div>
+            <div>
+              <div className="flex gap-4 justify-center">
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(response)}
+                  className="mt-4 px-6 py-2 bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-700 focus:ring-opacity-50 text-white font-bold rounded transition ease-in-out duration-150"
+                >
+                  Copy Response
+                </button>
+                <button
+                  type="button"
+                  onClick={() => downloadPDF(response)}
+                  className="mt-4 px-6 py-2 bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-opacity-50 text-white font-bold rounded transition ease-in-out duration-150"
+                >
+                  Download as PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="mt-4 px-6 py-2 bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-opacity-50 text-white font-bold rounded transition ease-in-out duration-150"
+                >
+                  Reset
+                </button>
+              </div>
+              <div className="mt-8 p-4 bg-white shadow rounded-lg w-full max-w-3xl">
+                <h2 className="text-2xl font-semibold mb-2">
+                  Formatted Resume:
+                </h2>
+                <div className="whitespace-pre-wrap">{response}</div>
+              </div>
             </div>
           )}
         </div>
       </form>
+      <Modal
+        isOpen={modalOpen}
+        title={modalTitle}
+        message={modalMessage}
+        onClose={() => {
+          setModalOpen(false);
+        }}
+      />
     </div>
   );
 };

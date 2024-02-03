@@ -10,6 +10,7 @@ import RegisterPage from "./components/RegisterPage";
 import ForgotPasswordPage from "./components/ForgotPasswordPage";
 import PricingPage from "./components/PricingPage";
 import Main from "./Main";
+import About from "./components/About"
 import { auth } from "./firebase.config";
 import { useAuthState } from "react-firebase-hooks/auth";
 
@@ -41,6 +42,8 @@ const App = () => {
           element={user ? <Navigate to="/" /> : <ForgotPasswordPage />}
         />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/about" element={<About />} />
+
         <Route path="/" element={!user ? <Navigate to="/login" /> : <Main />} />
       </Routes>
     </Router>
