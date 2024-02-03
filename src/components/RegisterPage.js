@@ -7,6 +7,7 @@ import Modal from "./Modal";
 
 const RegisterPage = () => {
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -19,8 +20,19 @@ const RegisterPage = () => {
     return regex.test(password);
   };
 
+  const validateEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    if (!validateEmail(email)) {
+      setEmailError("Please enter a valid email address.");
+      return;
+    }
+
     if (!validatePassword(password)) {
       setPasswordError(
         "Password must include at least one uppercase letter and one special character."
@@ -49,7 +61,6 @@ const RegisterPage = () => {
       setModalOpen(true);
     }
   };
-
   return (
     <div className="flex flex-col min-h-screen bg-black">
       <Navbar />
@@ -69,12 +80,20 @@ const RegisterPage = () => {
             />
             <input
               type="email"
-              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className={`input ${
+                emailError ? "border-red-500" : ""
+              } appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
               placeholder="Email address"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setEmailError(""); // Clear email error when user starts correcting the email
+              }}
               required
             />
+            {emailError && (
+              <p className="text-red-500 text-xs italic">{emailError}</p>
+            )}
             {/* Password Input */}
             <input
               type="password"
@@ -102,7 +121,7 @@ const RegisterPage = () => {
                 to="/login"
                 className="font-medium text-indigo-600 hover:text-indigo-500"
               >
-                Back to Login
+                Already have an account? Login here
               </Link>
             </div>
             {passwordError && (
