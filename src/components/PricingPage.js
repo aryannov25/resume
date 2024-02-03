@@ -48,45 +48,45 @@ const PricingPage = () => {
         </Link>
       </div>
       <div className="flex flex-col items-center justify-center">
-        <h1 className="text-4xl font-bold text-center text-gray-900 mt-4">
+        <h1 className="text-3xl font-bold text-center text-gray-900 mt-4">
           Pricing Plans
         </h1>
-        <p className="mt-2 text-lg text-gray-600">
-          Choose the plan that's right for you.
+        <p className="mt-1 text-md text-gray-600">
+          Choose the plan that fits you best.
         </p>
       </div>
-      <div className="mt-10 m-4 space-y-4 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-6 lg:gap-8">
+      <div className="mt-6 mx-4 space-y-4 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-4">
         {plans.map((plan) => (
           <div
             key={plan.name}
-            className={`relative p-6 bg-white rounded-lg shadow-sm ${
+            className={`relative p-4 bg-white rounded-lg shadow-sm border max-w-sm mx-auto ${
               plan.highlighted
-                ? "border-2 border-indigo-600"
+                ? "border-2 border-indigo-500"
                 : "border border-gray-200"
             }`}
           >
             <h3
-              className={`text-lg leading-6 font-medium ${
-                plan.highlighted ? "text-indigo-600" : "text-gray-900"
+              className={`text-md leading-6 font-medium ${
+                plan.highlighted ? "text-indigo-500" : "text-gray-900"
               }`}
             >
               {plan.name}
             </h3>
-            <p className="mt-4 text-4xl font-extrabold">{plan.price}</p>
-            <ul className="mt-6 space-y-4">
+            <p className="mt-2 text-2xl font-bold">{plan.price}</p>
+            <ul className="mt-4 space-y-2">
               {plan.features.map((feature) => (
-                <li key={feature} className="text-gray-500">
+                <li key={feature} className="text-gray-500 text-sm">
                   {feature}
                 </li>
               ))}
             </ul>
             <Link
               to={plan.link}
-              className={`mt-8 w-full flex items-center justify-center px-5 py-3 border border-transparent rounded-md shadow text-base font-medium text-white ${
+              className={`mt-6 w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow text-sm font-medium text-white ${
                 plan.highlighted
-                  ? "bg-indigo-600 hover:bg-indigo-700"
-                  : "bg-gray-800 hover:bg-gray-900"
-              }`}
+                  ? "bg-indigo-500 hover:bg-indigo-600"
+                  : "bg-gray-700 hover:bg-gray-800"
+              } transition ease-in-out duration-150`}
             >
               {plan.cta}
             </Link>

@@ -16,12 +16,12 @@ const Navbar = () => {
           </div>
           <div className="flex items-center">
             <div className="flex space-x-4">
-              <Link
+              {/* <Link
                 to="/pricing"
                 className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
               >
                 Pricing
-              </Link>
+              </Link> */}
               <Link
                 to="/about"
                 className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
