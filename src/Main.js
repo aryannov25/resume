@@ -6,6 +6,7 @@ import { auth } from "./firebase.config"; // Adjust the path as necessary
 import { signOut } from "firebase/auth";
 import jsPDF from "jspdf";
 import Modal from "./components/Modal";
+import Spinner from "./components/Spinner";
 
 GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
 
@@ -19,6 +20,7 @@ const Main = () => {
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
   const [isSignedOut, setIsSignedOut] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // New loading state
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -46,6 +48,7 @@ const Main = () => {
   const richText = jsonOutput ? convertToRichText(jsonOutput) : "";
 
   const fetchData = async () => {
+    setIsLoading(true);
     const openai = new OpenAI({
       apiKey: process.env.REACT_APP_OPENAI_API_KEY,
       dangerouslyAllowBrowser: true,
@@ -68,6 +71,10 @@ const Main = () => {
             Please make tailor made resume according to the job description 
             
             I really want to get shortlised for this role, and if you can help me that will be very very helpful.
+
+            And dont add notes that this is a tailored resume in last of the resume
+
+            And give a well formatted resume.
             
             Thanks `,
           },
@@ -83,15 +90,13 @@ const Main = () => {
             
             I want you to show your expertise and generate a new resume based on the job description and use ${richText} as my current experience.
             
-           
-            
             Make my experience outcome driven showing the numbers or % change and also make it really detailed also share what I did that make this outcome happen.
             
             Please make the output in a structure of resume, which I can use to re-write my resume.
             
             I really want to get shortlised for this role make sure the resume has more than 99% chance of shortlisting, and if you can help me that will be very very helpful.
             
-            Just keep the output strictly only for resume don't add any single other words apart from that including reference or any other text. Also, use normal words - don't use jargons. 
+            Just keep the output strictly only for resume don't add any single other words apart from that including reference or any other text. Also, use normal words - don't use jargons.  And dont add notes that this is a tailored resume in last of the resume.  And give a well formatted resume.
             
             Thanks `,
           },
@@ -106,6 +111,8 @@ const Main = () => {
     } catch (error) {
       console.error("Error fetching data from OpenAI:", error);
       setResponse(null);
+    } finally {
+      setIsLoading(false); // Stop loading whether fetch is successful or fails
     }
   };
   const handleSubmit = (e) => {
@@ -246,39 +253,42 @@ const Main = () => {
           >
             Generate Resume
           </button>
-
-          {response && (
-            <div>
-              <div className="flex gap-4 justify-center">
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(response)}
-                  className="mt-4 px-6 py-2 bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-700 focus:ring-opacity-50 text-white font-bold rounded transition ease-in-out duration-150"
-                >
-                  Copy Response
-                </button>
-                <button
-                  type="button"
-                  onClick={() => downloadPDF(response)}
-                  className="mt-4 px-6 py-2 bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-opacity-50 text-white font-bold rounded transition ease-in-out duration-150"
-                >
-                  Download as PDF
-                </button>
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="mt-4 px-6 py-2 bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-opacity-50 text-white font-bold rounded transition ease-in-out duration-150"
-                >
-                  Reset
-                </button>
+          {isLoading ? (
+            <Spinner />
+          ) : (
+            response && (
+              <div>
+                <div className="flex gap-4 justify-center">
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(response)}
+                    className="mt-4 px-6 py-2 bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-700 focus:ring-opacity-50 text-white font-bold rounded transition ease-in-out duration-150"
+                  >
+                    Copy Response
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => downloadPDF(response)}
+                    className="mt-4 px-6 py-2 bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-opacity-50 text-white font-bold rounded transition ease-in-out duration-150"
+                  >
+                    Download as PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="mt-4 px-6 py-2 bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-opacity-50 text-white font-bold rounded transition ease-in-out duration-150"
+                  >
+                    Reset
+                  </button>
+                </div>
+                <div className="mt-8 p-4 bg-white shadow rounded-lg w-full max-w-3xl">
+                  <h2 className="text-2xl font-semibold mb-2">
+                    Formatted Resume:
+                  </h2>
+                  <div className="whitespace-pre-wrap">{response}</div>
+                </div>
               </div>
-              <div className="mt-8 p-4 bg-white shadow rounded-lg w-full max-w-3xl">
-                <h2 className="text-2xl font-semibold mb-2">
-                  Formatted Resume:
-                </h2>
-                <div className="whitespace-pre-wrap">{response}</div>
-              </div>
-            </div>
+            )
           )}
         </div>
       </form>
