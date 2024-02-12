@@ -6,7 +6,7 @@ import { auth } from "./firebase.config"; // Adjust the path as necessary
 import { signOut } from "firebase/auth";
 import jsPDF from "jspdf";
 import Modal from "./components/Modal";
-import Spinner from "./components/Spinner";
+import { Typewriter } from "react-simple-typewriter";
 
 GlobalWorkerOptions.workerSrc = "/pdf.worker.mjs";
 
@@ -73,8 +73,6 @@ const Main = () => {
             I really want to get shortlised for this role, and if you can help me that will be very very helpful.
 
             And dont add notes that this is a tailored resume in last of the resume
-
-            And give a well formatted resume.
             
             Thanks `,
           },
@@ -96,7 +94,7 @@ const Main = () => {
             
             I really want to get shortlised for this role make sure the resume has more than 99% chance of shortlisting, and if you can help me that will be very very helpful.
             
-            Just keep the output strictly only for resume don't add any single other words apart from that including reference or any other text. Also, use normal words - don't use jargons.  And dont add notes that this is a tailored resume in last of the resume.  And give a well formatted resume.
+            Just keep the output strictly only for resume don't add any single other words apart from that including reference or any other text. Also, use normal words - don't use jargons.  And give a well formatted resume.
             
             Thanks `,
           },
@@ -254,7 +252,30 @@ const Main = () => {
             Generate Resume
           </button>
           {isLoading ? (
-            <Spinner />
+            <div className="bg-gray-900 flex items-center justify-center mt-8">
+              <div className="bg-gray-950 rounded-lg shadow-lg p-5 md:p-8 lg:p-12 max-w-md md:max-w-lg">
+                <h2 className="text-2xl font-bold text-center text-white mb-4">
+                  Processing Your Request
+                </h2>
+                <div className="text-center text-gray-500">
+                  <Typewriter
+                    words={[
+                      "Scanning resume...",
+                      "Uploading data...",
+                      "Crafting your resume... Please wait",
+                    ]}
+                    loop={20}
+                    cursor
+                    cursorStyle="|"
+                    typeSpeed={70}
+                    deleteSpeed={50}
+                    delaySpeed={1000}
+                    onLoopDone={() => console.log("Done looping")}
+                    className="text-sm sm:text-base md:text-lg font-medium"
+                  />
+                </div>
+              </div>
+            </div>
           ) : (
             response && (
               <div>
